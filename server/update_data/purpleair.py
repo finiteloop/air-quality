@@ -30,7 +30,7 @@ def _parse_result(result):
     id = int(result["ID"])
     latitude = float(result["Lat"])
     longitude = float(result["Lon"])
-    if result.get("humidity", "none") != "outside":
+    if result.get("humidity", "none") == "none":
         # Skip sensors that do not have humiditiy
         raise Exception("Device has no humiditiy reading")
     humidity = int(result["humidity"])
