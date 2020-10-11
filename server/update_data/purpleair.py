@@ -21,7 +21,7 @@ def parse_json(data):
 
 
 def _parse_result(result):
-    if result.get("ParentID")
+    if result.get("ParentID"):
         # Channel B is a redundancy sensor on the same physical device as Channel A.
         # We could look up the location data through the ParentID, but the PurpleAir website
         # seems to filter out all Channel B devices.
