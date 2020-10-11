@@ -9,8 +9,7 @@ air quality sensor data on a map, in a
 I created the application because I wanted a map of AQI on my iPhone home screen
 via an [iOS 14 Widget](https://support.apple.com/en-us/HT207122). PurpleAir does
 not have a native iOS app, and none of the other air quality apps support
-widgets or had the same quality and breadth of data as PurpleAir, so I created
-this application.
+widgets or had the same quality and breadth of data as PurpleAir.
 
 ## Download
 
@@ -21,8 +20,8 @@ the App Store.
 
 You can build the iOS and MacOS clients in XCode.
 
-  * [iOS](tree/master/client/ios)
-  * [MacOS](tree/master/client/ios)
+  * [iOS](client/ios/)
+  * [MacOS](client/ios/)
 
 Our "server" is a two [AWS Lambda](https://aws.amazon.com/lambda/) functions:
 one that downloads the PurpleAir JSON file on a schedule, converting its
@@ -31,16 +30,18 @@ verbose format to a terse
 by our clients; and another that invalidates the CloudFront CDN that serves
 that file to our clients.
 
-See `[server/](tree/master/server)` for the two functions and the
-[Serverless Application Model](serverless application model) configuration
-file from which we deploy the service.
+See [`server/`](server/) for the two functions and the
+[Serverless Application Model](https://aws.amazon.com/serverless/sam/)
+configuration file with which I deploy the service.
 
 ## Author
 
 This is a personal project from [Bret Taylor](mailto:btaylor@gmail.com).
 
 Data is exclusively from [PurpleAir](https://www.purpleair.com/). I am a
-happy owner of multiple sensors! Buy one an contribute to the network!
+happy owner of multiple sensors.
+[Buy one](https://www2.purpleair.com/collections/air-quality-sensors) and
+contribute to the network!
 
 The icon is from [Feather Icons](https://feathericons.com), modified slightly
 to conform to iOS aesthetics.
