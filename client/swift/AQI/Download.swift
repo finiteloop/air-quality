@@ -54,11 +54,11 @@ private class DownloadClient: NSObject, URLSessionDelegate, URLSessionDownloadDe
                   httpResponse.statusCode == 200,
                  let sensorsResponse = try? Sensors(serializedData: data) {
                  let sensors = GKRTree<Reading>(maxNumberOfChildren: 6000)
-                 for data in sensorsResponse.sensors {
-                     let sensor = Reading(data)
-                     let point = vector_float2(data.latitude, data.longitude)
-                     sensors.addElement(sensor, boundingRectMin: point, boundingRectMax: point, splitStrategy: .reduceOverlap)
-                 }
+                for data in sensorsResponse.sensors {
+                    let sensor = Reading(data)
+                    let point = vector_float2(data.latitude, data.longitude)
+                    sensors.addElement(sensor, boundingRectMin: point, boundingRectMax: point, splitStrategy: .reduceOverlap)
+                }
                 DispatchQueue.main.async {
                     self._onProgess(1.0)
                     self._onResponse(sensors, nil)

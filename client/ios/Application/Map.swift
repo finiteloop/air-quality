@@ -180,6 +180,12 @@ class MapController: UIViewController, MKMapViewDelegate, CLLocationManagerDeleg
         AQI.calculateRenderOperation(readings: self._readings, region: self._mapView.region, currentAnnotations: self._mapView.annotations, maximumAnnotationsToDisplay: self._maximumAnnoationsToDisplay) { (addAnnotations, removeAnnotations, updatedAnnotations) in
             self._mapView.removeAnnotations(removeAnnotations)
             self._mapView.addAnnotations(addAnnotations)
+            for (existing, updated) in updatedAnnotations {
+                if let readingView = self._mapView.view(for: existing) as? ReadingView {
+                    readingView.annotation = updated
+                    readingView.prepareForDisplay()
+                }
+            }
             self._redrawing = false
             if self._needsRedraw {
                 self._needsRedraw = false
@@ -249,7 +255,7 @@ class MapController: UIViewController, MKMapViewDelegate, CLLocationManagerDeleg
     }
 }
 
-fileprivate class ReadingView: MKAnnotationView {
+private class ReadingView: MKAnnotationView {
     private let _size: CGFloat = 28
 
     private lazy var _label: UILabel = {

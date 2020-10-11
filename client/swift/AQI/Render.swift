@@ -16,7 +16,7 @@ import MapKit
 ///   - render: The callback that renders the readings to the `MKMapView`
 @available(iOS 10.0, *)
 @available(macOS 10.12, *)
-public func calculateRenderOperation(readings: GKRTree<Reading>, region: MKCoordinateRegion, currentAnnotations: [MKAnnotation], maximumAnnotationsToDisplay: Int, render: @escaping (_ addAnnotations: Array<AQI.Reading>, _ removeAnnotations: Array<AQI.Reading>, _ updatedAnnotations: Array<AQI.Reading>) -> Void) {
+public func calculateRenderOperation(readings: GKRTree<Reading>, region: MKCoordinateRegion, currentAnnotations: [MKAnnotation], maximumAnnotationsToDisplay: Int, render: @escaping (_ addAnnotations: [AQI.Reading], _ removeAnnotations: [AQI.Reading], _ updatedAnnotations: [AQI.Reading: AQI.Reading]) -> Void) {
     DispatchQueue.global(qos: .background).async {
         var existingReadings = Set<AQI.Reading>()
         for annotation in currentAnnotations {
@@ -51,12 +51,12 @@ public func calculateRenderOperation(readings: GKRTree<Reading>, region: MKCoord
         }
 
         var addReadings = Set<AQI.Reading>()
-        var updatedAnnotations = Array<AQI.Reading>()
+        var updatedAnnotations: [AQI.Reading: AQI.Reading] = [:]
         for sensor in drawSensors {
             if existingReadings.contains(sensor) {
                 if let existing = existingReadings.remove(sensor) {
                     if existing.aqi != sensor.aqi {
-                        updatedAnnotations.append(sensor)
+                        updatedAnnotations[existing] = sensor
                     }
                 }
             } else {

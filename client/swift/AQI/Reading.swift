@@ -5,7 +5,7 @@ import MapKit
 
 /// An AQI reading from a PurpleAir sensor.
 public class Reading: NSObject, MKAnnotation, Comparable {
-    fileprivate let _sensor: Sensor
+    private let _sensor: Sensor
 
     init(_ sensor: Sensor) {
         self._sensor = sensor
