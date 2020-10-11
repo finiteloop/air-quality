@@ -25,7 +25,7 @@ def _parse_result(result):
         # Skip sensors that are inside
         raise Exception("Device is not outside")
     if int(result["AGE"]) > 300:
-        # Ignore device readinds more than 5 minutes old
+        # Ignore device readings more than 5 minutes old
         raise Exception("Device reading is outdated")
     id = int(result["ID"])
     latitude = float(result["Lat"])
