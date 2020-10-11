@@ -1,0 +1,8 @@
+.DS_Store
+project.xcworkspace/
+xcuserdata/
+xcshareddata/
+.vscode/
+.swiftpm/
+.aws-sam/
+samconfig.toml

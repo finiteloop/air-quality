@@ -1,0 +1,17 @@
+// Copyright 2020 Bret Taylor
+
+syntax = "proto3";
+option swift_prefix = "";
+
+package data;
+
+message Sensor {
+    uint32 id = 1;
+    float latitude = 2;
+    float longitude = 3;
+    uint32 reading = 4;
+}
+
+message Sensors {
+    repeated Sensor sensors = 1;
+}

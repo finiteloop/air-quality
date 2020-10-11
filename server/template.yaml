@@ -1,0 +1,118 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Globals:
+  Function:
+    Timeout: 30
+
+Resources:
+  # Stores the sensor data used by clients, delivered by CloudFront
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+        BucketName: !Ref S3BucketName
+
+  # Restrict access to CloudFront
+  S3BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref S3Bucket
+      PolicyDocument:
+        Statement:
+          -
+            Effect: Allow
+            Action: 's3:GetObject'
+            Resource:
+              - !Sub "arn:aws:s3:::${S3BucketName}/*"
+            Principal:
+              AWS: !Sub "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ${CloudFrontOriginAccessIdentity}"
+
+  # Serves content from the S3 bucket
+  CloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        HttpVersion: http2
+        Origins:
+          - Id: s3-air
+            DomainName: !Sub "${S3BucketName}.s3.amazonaws.com"
+            S3OriginConfig:
+              OriginAccessIdentity:
+                Fn::Sub: "origin-access-identity/cloudfront/${CloudFrontOriginAccessIdentity}"
+        DefaultCacheBehavior:
+          Compress: true
+          AllowedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+          ForwardedValues:
+            QueryString: false
+          TargetOriginId: s3-air
+          ViewerProtocolPolicy : redirect-to-https
+
+  CloudFrontOriginAccessIdentity:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: "CloudFront access to S3"
+
+  # Downloads PurpleAir data, converts to Protocol Buffers, and uploads to S3
+  UpdateDataFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: update_data/
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Environment:
+        Variables:
+          AWS_S3_BUCKET: !Ref S3BucketName
+          AWS_S3_OBJECT: !Ref S3Key
+      Policies:
+      - Statement:
+        - Sid: UpdateDataPolicy
+          Effect: Allow
+          Action:
+          - s3:PutObject
+          - s3:PutObjectAcl
+          Resource: !Sub "arn:aws:s3:::${S3BucketName}/${S3Key}"
+      Events:
+        UpdateDataEvent:
+          Type: Schedule
+          Properties:
+            Name: UpdateDataEvent
+            Schedule: rate(10 minutes)
+            Enabled: True
+
+  # Invalidates CloudFront cache whenever data is updated in S3
+  UpdateCloudFrontFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: update_cloudfront/
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Environment:
+        Variables:
+          AWS_CLOUDFRONT_DISTRIBUTION_ID: !Ref CloudFrontDistribution
+      Policies:
+      - Statement:
+        - Sid: UpdateCloudFrontPolicy
+          Effect: Allow
+          Action:
+          - cloudfront:CreateInvalidation
+          Resource: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}"
+      Events:
+        UpdateCloudFrontEvent:
+          Type: S3
+          Properties:
+            Bucket:
+              Ref: S3Bucket
+            Events:
+              - s3:ObjectCreated:*
+
+Parameters:
+  S3BucketName:
+    Type: String
+  S3Key:
+    Type: String
+    Default: sensors.pb
