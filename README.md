@@ -21,7 +21,7 @@ the App Store.
 You can build the iOS and MacOS clients in XCode.
 
   * [iOS](client/ios/)
-  * [MacOS](client/ios/)
+  * [MacOS](client/macos/)
 
 Our "server" is a two [AWS Lambda](https://aws.amazon.com/lambda/) functions:
 one that downloads the PurpleAir JSON file on a schedule, converting its
