@@ -10,6 +10,7 @@ message Sensor {
     float latitude = 2;
     float longitude = 3;
     uint32 reading = 4;
+    uint32 epa_adjusted_reading = 5;
 }
 
 message Sensors {

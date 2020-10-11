@@ -29,8 +29,16 @@ def _parse_result(result):
     longitude = float(result["Lon"])
     stats = json.loads(result["Stats"])
     reading = aqi_from_pm(stats["v1"])
+    epa_adjusted_reading = aqi_from_pm(_apply_epa_adjustment(stats["v1"], int(result["humidity"])))
     return model_pb2.Sensor(
-        id=id, latitude=latitude, longitude=longitude, reading=reading)
+        id=id, latitude=latitude, longitude=longitude, reading=reading, epa_adjusted_reading=epa_adjusted_reading)
+
+
+def _apply_epa_adjustment(concentration, relative_humidity):
+    if concentration > 250:
+        return concentration
+    else:
+        return 0.534 * concentration - 0.0844 * relative_humidity + 5.604
 
 
 def aqi_from_pm(pm):
