@@ -12,7 +12,6 @@ def parse_json(data):
     """Parses the PupleAir JSON file, returning a Sensors protobuf."""
     sensors = []
     for result in data["results"]:
-        # Skip sensors that are inside
         try:
             sensor = _parse_result(result)
         except:
@@ -23,7 +22,11 @@ def parse_json(data):
 
 def _parse_result(result):
     if result.get("DEVICE_LOCATIONTYPE", "outside") != "outside":
+        # Skip sensors that are inside
         raise Exception("Device is not outside")
+    if int(result["AGE"]) > 300:
+        # Ignore device readinds more than 5 minutes old
+        raise Exception("Device reading is outdated")
     id = int(result["ID"])
     latitude = float(result["Lat"])
     longitude = float(result["Lon"])
