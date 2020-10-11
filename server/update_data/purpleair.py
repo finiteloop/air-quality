@@ -30,18 +30,26 @@ def _parse_result(result):
     id = int(result["ID"])
     latitude = float(result["Lat"])
     longitude = float(result["Lon"])
+    if result.get("humidity", "none") != "outside":
+        # Skip sensors that do not have humiditiy
+        raise Exception("Device has no humiditiy reading")
+    humidity = int(result["humidity"])
     stats = json.loads(result["Stats"])
-    reading = aqi_from_pm(stats["v1"])
+    reading = aqi_from_pm(stats["v1"], humidity)
     return model_pb2.Sensor(
         id=id, latitude=latitude, longitude=longitude, reading=reading)
 
 
-def aqi_from_pm(pm):
+def aqi_from_pm(raw_pm, humidity):
     """Converts from PM2.5 to a standard AQI score.
     
     PM2.5 represents particulate matter <2.5 microns. We use the US standard
     for AQI.
     """
+
+    # See https://cfpub.epa.gov/si/si_public_record_report.cfm?dirEntryId=349513&Lab=CEMM for formula
+    pm = 0.534 * raw_pm - 0.0844 * humidity + 5.604
+
     if pm > 350.5:
         return _aqi(pm, 500, 401, 500, 350.5)
     elif pm > 250.5:
