@@ -33,6 +33,20 @@ struct MapProvider : IntentTimelineProvider {
                 locationManager.requestAlwaysAuthorization()
             }
             location = locationManager.location
+            
+            // CLLocationManager is really unreliable in a widget, not properly calling delegates. To stabilize the widget, we save the last location we read to prevent it from regressing to `defaultLocation` when reading it fails
+            let cacheKey = "lastWidgetLocation"
+            if let activeLocation = location {
+                UserDefaults.standard.set([
+                    "latitude": activeLocation.coordinate.latitude,
+                    "longitude": activeLocation.coordinate.longitude,
+                ], forKey: cacheKey)
+            } else if let cachedLocation = UserDefaults.standard.object(forKey: cacheKey) as? [String: CLLocationDegrees] {
+                if let latitude = cachedLocation["latitude"],
+                   let longitude = cachedLocation["longitude"] {
+                    location = CLLocation(latitude: latitude, longitude: longitude)
+                }
+            }
         }
         self._mapImage(location: location, size: context.displaySize) { (mapImage) in
             completion(MapEntry(date: Date(), mapImage: mapImage ?? UIImage(named: "MapPlaceholder")!))
