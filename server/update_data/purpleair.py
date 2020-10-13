@@ -21,6 +21,11 @@ def parse_json(data):
 
 
 def _parse_result(result):
+    if result.get("ParentID"):
+        # Channel B is a redundancy sensor on the same physical device as Channel A.
+        # We could look up the location data through the ParentID, but the PurpleAir website
+        # seems to filter out all Channel B devices.
+        raise Exception("Device is Channel B and does not have location information")
     if result.get("DEVICE_LOCATIONTYPE", "outside") != "outside":
         # Skip sensors that are inside
         raise Exception("Device is not outside")
