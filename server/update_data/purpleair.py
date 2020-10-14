@@ -10,26 +10,43 @@ JSON_URL = "https://www.purpleair.com/json"
 
 def parse_json(data):
     """Parses the PupleAir JSON file, returning a Sensors protobuf."""
+    all_results = data["results"]
+    filtered_results = _filter_results(all_results)
+
+    sensors = _parse_results(filtered_results)
+
+    return model_pb2.Sensors(sensors=sensors)
+
+
+def _filter_results(results):
+    return [r for r in results if _filter_result(r)]
+
+
+def _filter_result(result):
+    if result.get("ParentID"):
+        # Channel B is a redundant sensor on the same physical device
+        return False
+    elif result.get("DEVICE_LOCATIONTYPE", "outside") != "outside":
+        # Skip sensors that are inside
+        return False
+    elif int(result["AGE"]) > 300:
+        # Ignore device readings more than 5 minutes old
+        return False
+    return True
+
+
+def _parse_results(results):
     sensors = []
-    for result in data["results"]:
+    for result in results:
         try:
             sensor = _parse_result(result)
         except:
             continue
         sensors.append(sensor)
-    return model_pb2.Sensors(sensors=sensors)
+    return sensors
 
 
 def _parse_result(result):
-    if result.get("ParentID"):
-        # Channel B is a redundant sensor on the same physical device
-        raise Exception("Device is Channel B")
-    if result.get("DEVICE_LOCATIONTYPE", "outside") != "outside":
-        # Skip sensors that are inside
-        raise Exception("Device is not outside")
-    if int(result["AGE"]) > 300:
-        # Ignore device readings more than 5 minutes old
-        raise Exception("Device reading is outdated")
     id = int(result["ID"])
     latitude = float(result["Lat"])
     longitude = float(result["Lon"])
@@ -41,7 +58,7 @@ def _parse_result(result):
 
 def aqi_from_pm(pm):
     """Converts from PM2.5 to a standard AQI score.
-    
+
     PM2.5 represents particulate matter <2.5 microns. We use the US standard
     for AQI.
     """
