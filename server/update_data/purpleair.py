@@ -13,7 +13,10 @@ def parse_json(data):
     all_results = data["results"]
     filtered_results = _filter_results(all_results)
 
-    sensors = _parse_results(filtered_results)
+    channel_b_dict = _channel_b_dict(all_results)
+    fallback_results = _fallback_to_channel_b(filtered_results, channel_b_dict)
+
+    sensors = _parse_results(fallback_results)
 
     return model_pb2.Sensors(sensors=sensors)
 
@@ -23,6 +26,7 @@ def _filter_results(results):
 
 
 def _filter_result(result):
+    """Returns True/False whether a single API result should be included in the dataset"""
     if result.get("ParentID"):
         # Channel B is a redundant sensor on the same physical device
         return False
@@ -33,6 +37,30 @@ def _filter_result(result):
         # Ignore device readings more than 5 minutes old
         return False
     return True
+
+
+def _channel_b_dict(results):
+    """Constructs a dictionary mapping Channel A (primary) IDs to Channel B
+    (secondary) results."""
+    return {r["ParentID"]:r for r in results if r.get("ParentID")}
+
+
+def _fallback_to_channel_b(channel_a_results, channel_b_dict):
+    """Fallback to the Channel B result if Channel A has a bad reading"""
+    fallback_results = []
+    for channel_a_result in channel_a_results:
+        if _good_reading(channel_a_result):
+            fallback_results.append(channel_a_result)
+        else:
+            channel_b_result = channel_b_dict.get(channel_a_result["ID"])
+            if _good_reading(channel_b_result):
+                fallback_results.append(channel_b_result)
+    return fallback_results
+
+
+def _good_reading(result):
+    # Flag: 1 means the device has been flagged for unusally high readings
+    return not result.get("Flag")
 
 
 def _parse_results(results):
@@ -47,6 +75,7 @@ def _parse_results(results):
 
 
 def _parse_result(result):
+    """Parses a single API result into a Sensor protobuf"""
     id = int(result["ID"])
     latitude = float(result["Lat"])
     longitude = float(result["Lon"])
