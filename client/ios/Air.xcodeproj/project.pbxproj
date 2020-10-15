@@ -21,6 +21,7 @@
 		878E21AD252BA4E90080768F /* LocationSelection.intentdefinition in Sources */ = {isa = PBXBuildFile; fileRef = 878E21A8252BA4E80080768F /* LocationSelection.intentdefinition */; };
 		878E21B0252BA4E90080768F /* WidgetExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 878E21A2252BA4E80080768F /* WidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		878E21D7252BA9100080768F /* Widget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 878E21D6252BA9100080768F /* Widget.swift */; };
+		879F83382537CE00009F127B /* Detail.swift in Sources */ = {isa = PBXBuildFile; fileRef = 879F83372537CE00009F127B /* Detail.swift */; };
 		87D3860725323FBC00FD9EAF /* Search.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87D3860625323FBC00FD9EAF /* Search.swift */; };
 		87D3860B253256A100FD9EAF /* Help.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87D3860A253256A100FD9EAF /* Help.swift */; };
 		87EBD95F2526695800C13FE4 /* GameKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 87EBD95E2526695800C13FE4 /* GameKit.framework */; };
@@ -65,6 +66,7 @@
 		878E21A9252BA4E90080768F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		878E21AB252BA4E90080768F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		878E21D6252BA9100080768F /* Widget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Widget.swift; sourceTree = "<group>"; };
+		879F83372537CE00009F127B /* Detail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Detail.swift; sourceTree = "<group>"; };
 		87D3860625323FBC00FD9EAF /* Search.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Search.swift; sourceTree = "<group>"; };
 		87D3860A253256A100FD9EAF /* Help.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Help.swift; sourceTree = "<group>"; };
 		87EBD95E2526695800C13FE4 /* GameKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GameKit.framework; path = System/Library/Frameworks/GameKit.framework; sourceTree = SDKROOT; };
@@ -143,6 +145,7 @@
 			isa = PBXGroup;
 			children = (
 				8747360625226CEC002982BB /* Application.swift */,
+				879F83372537CE00009F127B /* Detail.swift */,
 				87D3860A253256A100FD9EAF /* Help.swift */,
 				8718E9EC252270EE00543A5C /* Map.swift */,
 				87D3860625323FBC00FD9EAF /* Search.swift */,
@@ -263,6 +266,7 @@
 				87D3860B253256A100FD9EAF /* Help.swift in Sources */,
 				87D3860725323FBC00FD9EAF /* Search.swift in Sources */,
 				8718E9ED252270EE00543A5C /* Map.swift in Sources */,
+				879F83382537CE00009F127B /* Detail.swift in Sources */,
 				8747360725226CEC002982BB /* Application.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

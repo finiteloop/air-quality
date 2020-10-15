@@ -10,79 +10,57 @@ JSON_URL = "https://www.purpleair.com/json"
 
 def parse_json(data):
     """Parses the PupleAir JSON file, returning a Sensors protobuf."""
-    all_results = data["results"]
-    filtered_results = _filter_results(all_results)
-
-    channel_b_dict = _channel_b_dict(all_results)
-    fallback_results = _fallback_to_channel_b(filtered_results, channel_b_dict)
-
-    sensors = _parse_results(fallback_results)
-
+    channel_a = []
+    channel_b = {}
+    for result in data["results"]:
+        if "ParentID" in result:
+            channel_b[result["ParentID"]] = result
+        else:
+            channel_a.append(result)
+    sensors = list(_parse_results(channel_a, channel_b))
     return model_pb2.Sensors(sensors=sensors)
 
 
-def _filter_results(results):
-    return [r for r in results if _filter_result(r)]
-
-
-def _filter_result(result):
-    """Returns True/False whether a single API result should be included in the dataset"""
-    if result.get("ParentID"):
-        # Channel B is a redundant sensor on the same physical device
-        return False
-    elif result.get("DEVICE_LOCATIONTYPE", "outside") != "outside":
+def _valid_result(result):
+    if result.get("DEVICE_LOCATIONTYPE", "outside") != "outside":
         # Skip sensors that are inside
         return False
     elif int(result["AGE"]) > 300:
         # Ignore device readings more than 5 minutes old
         return False
-    return True
+    return "Lat" in result and "Lon" in result and "Stats" in result
 
 
-def _channel_b_dict(results):
-    """Constructs a dictionary mapping Channel A (primary) IDs to Channel B
-    (secondary) results."""
-    return {r["ParentID"]:r for r in results if r.get("ParentID")}
-
-
-def _fallback_to_channel_b(channel_a_results, channel_b_dict):
-    """Fallback to the Channel B result if Channel A has a bad reading"""
-    fallback_results = []
-    for channel_a_result in channel_a_results:
-        if _good_reading(channel_a_result):
-            fallback_results.append(channel_a_result)
-        else:
-            channel_b_result = channel_b_dict.get(channel_a_result["ID"])
-            if _good_reading(channel_b_result):
-                fallback_results.append(channel_b_result)
-    return fallback_results
-
-
-def _good_reading(result):
-    # Flag: 1 means the device has been flagged for unusally high readings
-    return not result.get("Flag")
-
-
-def _parse_results(results):
-    sensors = []
-    for result in results:
-        try:
-            sensor = _parse_result(result)
-        except:
+def _parse_results(channel_a, channel_b):
+    for result in channel_a:
+        assert "ParentID" not in result
+        if not _valid_result(result):
             continue
-        sensors.append(sensor)
-    return sensors
+        elif result.get("Flag"):
+            # PurpleAir has flagged this sensor for unusually high readings.
+            # Fall back to channel B if its result has not been flagged.
+            result_b = channel_b.get(result["ID"])
+            if result_b and _valid_result(result_b) and not result_b.get("Flag"):
+                yield _parse_result(result_b)
+        else:
+            yield _parse_result(result)
 
 
 def _parse_result(result):
-    """Parses a single API result into a Sensor protobuf"""
     id = int(result["ID"])
     latitude = float(result["Lat"])
     longitude = float(result["Lon"])
     stats = json.loads(result["Stats"])
-    reading = aqi_from_pm(stats["v1"])
     return model_pb2.Sensor(
-        id=id, latitude=latitude, longitude=longitude, reading=reading)
+        id=id,
+        latitude=latitude,
+        longitude=longitude,
+        aqi_10m=aqi_from_pm(stats["v1"]),
+        aqi_30m=aqi_from_pm(stats["v2"]),
+        aqi_1h=aqi_from_pm(stats["v3"]),
+        aqi_6h=aqi_from_pm(stats["v4"]),
+        aqi_24h=aqi_from_pm(stats["v5"]),
+        last_updated=int(stats["lastModified"]))
 
 
 def aqi_from_pm(pm):

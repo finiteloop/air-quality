@@ -17,9 +17,9 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='model.proto',
   package='data',
   syntax='proto3',
-  serialized_options=b'Z%github.com/finiteloop/air/server/data\272\002\000',
+  serialized_options=b'\272\002\000',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x0bmodel.proto\x12\x04\x64\x61ta\"J\n\x06Sensor\x12\n\n\x02id\x18\x01 \x01(\r\x12\x10\n\x08latitude\x18\x02 \x01(\x02\x12\x11\n\tlongitude\x18\x03 \x01(\x02\x12\x0f\n\x07reading\x18\x04 \x01(\r\"(\n\x07Sensors\x12\x1d\n\x07sensors\x18\x01 \x03(\x0b\x32\x0c.data.SensorB*Z%github.com/finiteloop/air/server/data\xba\x02\x00\x62\x06proto3'
+  serialized_pb=b'\n\x0bmodel.proto\x12\x04\x64\x61ta\"\xa2\x01\n\x06Sensor\x12\n\n\x02id\x18\x01 \x01(\r\x12\x10\n\x08latitude\x18\x02 \x01(\x02\x12\x11\n\tlongitude\x18\x03 \x01(\x02\x12\x0f\n\x07\x61qi_10m\x18\x04 \x01(\r\x12\x0f\n\x07\x61qi_30m\x18\x05 \x01(\r\x12\x0e\n\x06\x61qi_1h\x18\x06 \x01(\r\x12\x0e\n\x06\x61qi_6h\x18\x07 \x01(\r\x12\x0f\n\x07\x61qi_24h\x18\x08 \x01(\r\x12\x14\n\x0clast_updated\x18\t \x01(\x04\"(\n\x07Sensors\x12\x1d\n\x07sensors\x18\x01 \x03(\x0b\x32\x0c.data.SensorB\x03\xba\x02\x00\x62\x06proto3'
 )
 
 
@@ -55,8 +55,43 @@ _SENSOR = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='reading', full_name='data.Sensor.reading', index=3,
+      name='aqi_10m', full_name='data.Sensor.aqi_10m', index=3,
       number=4, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='aqi_30m', full_name='data.Sensor.aqi_30m', index=4,
+      number=5, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='aqi_1h', full_name='data.Sensor.aqi_1h', index=5,
+      number=6, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='aqi_6h', full_name='data.Sensor.aqi_6h', index=6,
+      number=7, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='aqi_24h', full_name='data.Sensor.aqi_24h', index=7,
+      number=8, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='last_updated', full_name='data.Sensor.last_updated', index=8,
+      number=9, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -73,8 +108,8 @@ _SENSOR = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=21,
-  serialized_end=95,
+  serialized_start=22,
+  serialized_end=184,
 )
 
 
@@ -105,8 +140,8 @@ _SENSORS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=97,
-  serialized_end=137,
+  serialized_start=186,
+  serialized_end=226,
 )
 
 _SENSORS.fields_by_name['sensors'].message_type = _SENSOR

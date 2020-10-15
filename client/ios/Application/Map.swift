@@ -182,7 +182,9 @@ class MapController: UIViewController, MKMapViewDelegate, CLLocationManagerDeleg
             self._mapView.addAnnotations(addAnnotations)
             for (existing, updated) in updatedAnnotations {
                 if let readingView = self._mapView.view(for: existing) as? ReadingView {
-                    readingView.annotation = updated
+                    if let oldReading = readingView.annotation as? AQI.Reading {
+                        oldReading.update(updated)
+                    }
                     readingView.prepareForDisplay()
                 }
             }
@@ -256,7 +258,9 @@ class MapController: UIViewController, MKMapViewDelegate, CLLocationManagerDeleg
 }
 
 private class ReadingView: MKAnnotationView {
+    private let _textAlpha: CGFloat = 0.8
     private let _size: CGFloat = 28
+    private var _detailCalloutAccessoryView: SensorDetailView?
 
     private lazy var _label: UILabel = {
         let label = UILabel(frame: .zero)
@@ -271,27 +275,67 @@ private class ReadingView: MKAnnotationView {
 
     override init(annotation: MKAnnotation?, reuseIdentifier: String?) {
         super.init(annotation: annotation, reuseIdentifier: reuseIdentifier)
+        self.canShowCallout = true
+        self.calloutOffset = CGPoint(x: 0, y: _size / 4)
         self.addSubview(self._label)
+        self.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             self._label.widthAnchor.constraint(equalToConstant: _size),
             self._label.heightAnchor.constraint(equalToConstant: _size),
             self._label.centerXAnchor.constraint(equalTo: self.centerXAnchor),
             self._label.centerYAnchor.constraint(equalTo: self.centerYAnchor),
+            self.leftAnchor.constraint(equalTo: self._label.leftAnchor),
+            self.rightAnchor.constraint(equalTo: self._label.rightAnchor),
+            self.topAnchor.constraint(equalTo: self._label.topAnchor),
+            self.bottomAnchor.constraint(equalTo: self._label.bottomAnchor),
         ])
+    }
+    
+    override var detailCalloutAccessoryView: UIView? {
+        get {
+            if self._detailCalloutAccessoryView == nil {
+                self._detailCalloutAccessoryView = SensorDetailView()
+                self._detailCalloutAccessoryView?.reading = self.annotation as? AQI.Reading
+            }
+            return self._detailCalloutAccessoryView
+        }
+        set {
+        }
     }
 
     @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+    
+    override func setSelected(_ selected: Bool, animated: Bool) {
+        let update: () -> Void = {
+            if selected {
+                self._label.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
+                self._label.textColor = self._label.textColor.withAlphaComponent(0)
+            } else {
+                self._label.transform = .identity
+                self._label.textColor = self._label.textColor.withAlphaComponent(self._textAlpha)
+            }
+        }
+        if animated {
+            UIView.animate(withDuration: 0.4, delay: 0, usingSpringWithDamping: 0.6, initialSpringVelocity: 0, options: [], animations: update, completion: nil)
+        } else {
+            update()
+        }
+    }
 
     override func prepareForDisplay() {
         super.prepareForDisplay()
         if let reading = self.annotation as? AQI.Reading {
-            self._label.text = reading.title
+            self._label.text = reading.aqiString
             self._label.backgroundColor = uiColor(AQI.color(aqi: reading.aqi))
-            self._label.textColor = uiColor(AQI.textColor(aqi: reading.aqi)).withAlphaComponent(0.8)
+            self._label.textColor = uiColor(AQI.textColor(aqi: reading.aqi)).withAlphaComponent(self._textAlpha)
+            self._detailCalloutAccessoryView?.reading = reading
         }
+    }
+    
+    private func _configureCalloutView(_ reading: AQI.Reading) {
     }
 }
 

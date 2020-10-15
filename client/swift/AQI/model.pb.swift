@@ -33,7 +33,17 @@ struct Sensor {
 
   var longitude: Float = 0
 
-  var reading: UInt32 = 0
+  var aqi10M: UInt32 = 0
+
+  var aqi30M: UInt32 = 0
+
+  var aqi1H: UInt32 = 0
+
+  var aqi6H: UInt32 = 0
+
+  var aqi24H: UInt32 = 0
+
+  var lastUpdated: UInt64 = 0
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -62,7 +72,12 @@ extension Sensor: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBas
     1: .same(proto: "id"),
     2: .same(proto: "latitude"),
     3: .same(proto: "longitude"),
-    4: .same(proto: "reading"),
+    4: .standard(proto: "aqi_10m"),
+    5: .standard(proto: "aqi_30m"),
+    6: .standard(proto: "aqi_1h"),
+    7: .standard(proto: "aqi_6h"),
+    8: .standard(proto: "aqi_24h"),
+    9: .standard(proto: "last_updated"),
   ]
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -74,7 +89,12 @@ extension Sensor: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBas
       case 1: try { try decoder.decodeSingularUInt32Field(value: &self.id) }()
       case 2: try { try decoder.decodeSingularFloatField(value: &self.latitude) }()
       case 3: try { try decoder.decodeSingularFloatField(value: &self.longitude) }()
-      case 4: try { try decoder.decodeSingularUInt32Field(value: &self.reading) }()
+      case 4: try { try decoder.decodeSingularUInt32Field(value: &self.aqi10M) }()
+      case 5: try { try decoder.decodeSingularUInt32Field(value: &self.aqi30M) }()
+      case 6: try { try decoder.decodeSingularUInt32Field(value: &self.aqi1H) }()
+      case 7: try { try decoder.decodeSingularUInt32Field(value: &self.aqi6H) }()
+      case 8: try { try decoder.decodeSingularUInt32Field(value: &self.aqi24H) }()
+      case 9: try { try decoder.decodeSingularUInt64Field(value: &self.lastUpdated) }()
       default: break
       }
     }
@@ -90,8 +110,23 @@ extension Sensor: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBas
     if self.longitude != 0 {
       try visitor.visitSingularFloatField(value: self.longitude, fieldNumber: 3)
     }
-    if self.reading != 0 {
-      try visitor.visitSingularUInt32Field(value: self.reading, fieldNumber: 4)
+    if self.aqi10M != 0 {
+      try visitor.visitSingularUInt32Field(value: self.aqi10M, fieldNumber: 4)
+    }
+    if self.aqi30M != 0 {
+      try visitor.visitSingularUInt32Field(value: self.aqi30M, fieldNumber: 5)
+    }
+    if self.aqi1H != 0 {
+      try visitor.visitSingularUInt32Field(value: self.aqi1H, fieldNumber: 6)
+    }
+    if self.aqi6H != 0 {
+      try visitor.visitSingularUInt32Field(value: self.aqi6H, fieldNumber: 7)
+    }
+    if self.aqi24H != 0 {
+      try visitor.visitSingularUInt32Field(value: self.aqi24H, fieldNumber: 8)
+    }
+    if self.lastUpdated != 0 {
+      try visitor.visitSingularUInt64Field(value: self.lastUpdated, fieldNumber: 9)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -100,7 +135,12 @@ extension Sensor: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBas
     if lhs.id != rhs.id {return false}
     if lhs.latitude != rhs.latitude {return false}
     if lhs.longitude != rhs.longitude {return false}
-    if lhs.reading != rhs.reading {return false}
+    if lhs.aqi10M != rhs.aqi10M {return false}
+    if lhs.aqi30M != rhs.aqi30M {return false}
+    if lhs.aqi1H != rhs.aqi1H {return false}
+    if lhs.aqi6H != rhs.aqi6H {return false}
+    if lhs.aqi24H != rhs.aqi24H {return false}
+    if lhs.lastUpdated != rhs.lastUpdated {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

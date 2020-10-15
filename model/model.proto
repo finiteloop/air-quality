@@ -9,7 +9,12 @@ message Sensor {
     uint32 id = 1;
     float latitude = 2;
     float longitude = 3;
-    uint32 reading = 4;
+    uint32 aqi_10m = 4;
+    uint32 aqi_30m = 5;
+    uint32 aqi_1h = 6;
+    uint32 aqi_6h = 7;
+    uint32 aqi_24h = 8;
+    uint64 last_updated = 9;
 }
 
 message Sensors {

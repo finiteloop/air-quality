@@ -5,7 +5,7 @@ import MapKit
 
 /// An AQI reading from a PurpleAir sensor.
 public class Reading: NSObject, MKAnnotation, Comparable {
-    private let _sensor: Sensor
+    private var _sensor: Sensor
 
     init(_ sensor: Sensor) {
         self._sensor = sensor
@@ -15,16 +15,46 @@ public class Reading: NSObject, MKAnnotation, Comparable {
         return CLLocationCoordinate2D(latitude: Double(self._sensor.latitude), longitude: Double(self._sensor.longitude))
     }()
     
-    public lazy var title: String? = {
-        return String(self._sensor.reading)
-    }()
+    public let title: String? = NSLocalizedString("PurpleAir Sensor", comment: "Title of sensor reading callout")
+    
+    public func update(_ updated: Reading) {
+        self._sensor = updated._sensor
+    }
 
     public var id: UInt32 {
         return self._sensor.id
     }
-
+    
+    public var aqiString: String {
+        return String(self._sensor.aqi10M)
+    }
+    
     public var aqi: UInt32 {
-        return self._sensor.reading
+        return self._sensor.aqi10M
+    }
+    
+    public var aqi10M: UInt32 {
+        return self._sensor.aqi10M
+    }
+    
+    public var aqi30M: UInt32 {
+        return self._sensor.aqi30M
+    }
+    
+    public var aqi1H: UInt32 {
+        return self._sensor.aqi1H
+    }
+    
+    public var aqi6H: UInt32 {
+        return self._sensor.aqi6H
+    }
+    
+    public var aqi24H: UInt32 {
+        return self._sensor.aqi24H
+    }
+    
+    public var lastUpdated: Date {
+        return Date(timeIntervalSince1970: Double(self._sensor.lastUpdated) / 1000.0)
     }
 
     public var subtitle: String? {
