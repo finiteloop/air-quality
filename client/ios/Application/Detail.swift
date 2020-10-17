@@ -16,7 +16,7 @@ class SensorDetailView: UIView {
                 let formatter = RelativeDateTimeFormatter()
                 formatter.unitsStyle = .full
                 formatter.dateTimeStyle = .named
-                self._aqiHeading.text = NSLocalizedString("AQI", comment: "Title of air quality index detail") + " (" + formatter.localizedString(for: reading.lastUpdated, relativeTo: Date()) + ")"
+                self._aqiHeading.text = "Updated " + formatter.localizedString(for: reading.lastUpdated, relativeTo: Date())
             }
         }
     }
@@ -65,7 +65,7 @@ class SensorDetailView: UIView {
         let stack = UIStackView(arrangedSubviews: [
             self._aqiHeading,
             self._currentReading,
-            self._heading(NSLocalizedString("Recent Air Readings", comment: "Title of table of recent readings from an air quality sensor")),
+            self._heading(NSLocalizedString("Air Quality Average", comment: "Title of table of average AQI from last 24 hours")),
             historicalReadings,
         ])
         stack.translatesAutoresizingMaskIntoConstraints = false
@@ -85,10 +85,10 @@ class SensorDetailView: UIView {
 
     private func _heading(_ title: String) -> UILabel {
         let label = UILabel(frame: .zero)
-        label.font = UIFont.systemFont(ofSize: 12, weight: .medium)
+        label.font = UIFont.systemFont(ofSize: 14, weight: .medium)
         label.text = title
         label.backgroundColor = .clear
-        label.textColor = UIColor.label.withAlphaComponent(0.6)
+        label.textColor = UIColor.label.withAlphaComponent(0.5)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }
