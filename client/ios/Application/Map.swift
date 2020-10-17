@@ -278,16 +278,12 @@ private class ReadingView: MKAnnotationView {
         self.canShowCallout = true
         self.calloutOffset = CGPoint(x: 0, y: _size / 4)
         self.addSubview(self._label)
-        self.translatesAutoresizingMaskIntoConstraints = false
+        self.bounds = CGRect(x: 0, y: 0, width: _size, height: _size)
         NSLayoutConstraint.activate([
             self._label.widthAnchor.constraint(equalToConstant: _size),
             self._label.heightAnchor.constraint(equalToConstant: _size),
             self._label.centerXAnchor.constraint(equalTo: self.centerXAnchor),
             self._label.centerYAnchor.constraint(equalTo: self.centerYAnchor),
-            self.leftAnchor.constraint(equalTo: self._label.leftAnchor),
-            self.rightAnchor.constraint(equalTo: self._label.rightAnchor),
-            self.topAnchor.constraint(equalTo: self._label.topAnchor),
-            self.bottomAnchor.constraint(equalTo: self._label.bottomAnchor),
         ])
     }
     
@@ -333,9 +329,6 @@ private class ReadingView: MKAnnotationView {
             self._label.textColor = uiColor(AQI.textColor(aqi: reading.aqi)).withAlphaComponent(self._textAlpha)
             self._detailCalloutAccessoryView?.reading = reading
         }
-    }
-    
-    private func _configureCalloutView(_ reading: AQI.Reading) {
     }
 }
 
