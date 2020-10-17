@@ -68,6 +68,7 @@ Resources:
         Variables:
           AWS_S3_BUCKET: !Ref S3BucketName
           AWS_S3_OBJECT: !Ref S3Key
+          AWS_S3_OBJECT_COMPACT: !Ref S3KeyCompact
       Policies:
       - Statement:
         - Sid: UpdateDataPolicy
@@ -75,7 +76,7 @@ Resources:
           Action:
           - s3:PutObject
           - s3:PutObjectAcl
-          Resource: !Sub "arn:aws:s3:::${S3BucketName}/${S3Key}"
+          Resource: !Sub "arn:aws:s3:::${S3BucketName}/*"
       Events:
         UpdateDataEvent:
           Type: Schedule
@@ -116,3 +117,6 @@ Parameters:
   S3Key:
     Type: String
     Default: sensors.pb
+  S3KeyCompact:
+    Type: String
+    Default: sensors.compact.pb

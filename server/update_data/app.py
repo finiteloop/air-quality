@@ -11,25 +11,33 @@ import time
 import urllib.request
 
 
-def update_sensor_data(s3_bucket, s3_object):
+def update_sensor_data(s3_bucket, s3_object, compact_s3_object):
     """Uploads PurpleAir sensor data to the location used by our clients.
 
     We download JSON from PurpleAir and convert to our proprietary Protocol
-    Buffer format, which is used by all clients. We upload a single file for
-    the world, which, due to reducing the data per sensor and the efficiency of
-    protocol buffers, is below 400KB uncompressed and significantly less when
-    compressed.
+    Buffer format, which is used by all clients.
+
+    We upload two versions of the protocol buffer data: complete data, used by
+    the app to display AQI readings and 24-hour averages; and compact data,
+    which just contains a single reading, is used by the widget.
     """
     start_time = time.time()
     raw = urllib.request.urlopen(purpleair.JSON_URL).read()
     download_time = time.time()
     sensors = purpleair.parse_json(json.loads(raw))
+    compact = purpleair.compact_sensor_data(sensors)
     parse_time = time.time()
     s3 = boto3.client("s3")
     s3.put_object(
         Bucket=s3_bucket,
         Key=s3_object,
         Body=sensors.SerializeToString(),
+        ACL="public-read",
+        ContentType="application/protobuf")
+    s3.put_object(
+        Bucket=s3_bucket,
+        Key=compact_s3_object,
+        Body=compact.SerializeToString(),
         ACL="public-read",
         ContentType="application/protobuf")
     s3_time = time.time()
@@ -42,4 +50,5 @@ def update_sensor_data(s3_bucket, s3_object):
 def lambda_handler(event, context):
     update_sensor_data(
         s3_bucket=os.environ["AWS_S3_BUCKET"],
-        s3_object=os.environ["AWS_S3_OBJECT"])
+        s3_object=os.environ["AWS_S3_OBJECT"],
+        compact_s3_object=os.environ["AWS_S3_OBJECT_COMPACT"])

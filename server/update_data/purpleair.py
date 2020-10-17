@@ -21,6 +21,22 @@ def parse_json(data):
     return model_pb2.Sensors(sensors=sensors)
 
 
+def compact_sensor_data(sensors):
+    """Returns a new set of Sensors with minimal sensor data (lat, lng, aqi).
+
+    We use this reduced payload for the Widget, which does not need details like
+    the sensor ID or 24-hour AQI average.
+    """
+    compact = []
+    for sensor in sensors.sensors:
+        compact.append(model_pb2.Sensor(
+            id=sensor.id,
+            latitude=sensor.latitude,
+            longitude=sensor.longitude,
+            aqi_10m=sensor.aqi_10m))
+    return model_pb2.Sensors(sensors=compact)
+
+
 def _valid_result(result):
     if result.get("DEVICE_LOCATIONTYPE", "outside") != "outside":
         # Skip sensors that are inside

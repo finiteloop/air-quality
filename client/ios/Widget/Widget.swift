@@ -81,8 +81,7 @@ struct MapProvider : IntentTimelineProvider {
                 callback(nil)
                 return
             }
-            AQI.downloadReadings { (percentage) in
-            } onResponse: { (readings, error) in
+            AQI.downloadCompactReadings { (readings, error) in
                 if let readings = readings {
                     var region = options.region
                     if size.width > size.height {

@@ -4,12 +4,12 @@ import Foundation
 import GameKit
 
 private let dataURL = URL(string: "https://dfddnmlutocpt.cloudfront.net/sensors.pb")!
+private let compactDataURL = URL(string: "https://dfddnmlutocpt.cloudfront.net/sensors.compact.pb")!
 
 /// Downloads the most recent AQI readings from the server.
 ///
 /// Readings are delivered as an `GKRTree` to enable efficient querying of which readings are visible in a map view.
 /// - Parameters:
-///   - url: The URL of the AQI readings
 ///   - onProgess: The callback to which we report download progress as a percentage in the range `[0.0, 1.0]`
 ///   - onResponse: The callback to which we report the parsed download response
 @available(iOS 13.0, *)
@@ -18,6 +18,20 @@ public func downloadReadings(onProgess: @escaping (Float) -> Void, onResponse: @
     let client = DownloadClient(onProgess: onProgess, onResponse: onResponse)
     let session = URLSession(configuration: URLSessionConfiguration.default, delegate: client, delegateQueue: OperationQueue.main)
     session.downloadTask(with: dataURL).resume()
+}
+
+/// Downloads the compact AQI readings from the server, which only includes one AQI reading in addition to the latitude and longitude.
+///
+/// Readings are delivered as an `GKRTree` to enable efficient querying of which readings are visible in a map view.
+/// - Parameters:
+///   - onResponse: The callback to which we report the parsed download response
+@available(iOS 13.0, *)
+@available(macOS 10.12, *)
+public func downloadCompactReadings(onResponse: @escaping (GKRTree<Reading>?, Error?) -> Void) {
+    let client = DownloadClient(onProgess: { (percentage) in
+    }, onResponse: onResponse)
+    let session = URLSession(configuration: URLSessionConfiguration.default, delegate: client, delegateQueue: OperationQueue.main)
+    session.downloadTask(with: compactDataURL).resume()
 }
 
 @available(iOS 13.0, *)
