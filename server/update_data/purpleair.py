@@ -67,38 +67,56 @@ def _parse_result(result):
     latitude = float(result["Lat"])
     longitude = float(result["Lon"])
     stats = json.loads(result["Stats"])
+    rh = float(result["humidity"]) if 'humidity' in result else None
     return model_pb2.Sensor(
         id=id,
         latitude=latitude,
         longitude=longitude,
-        aqi_10m=aqi_from_pm(stats["v1"]),
-        aqi_30m=aqi_from_pm(stats["v2"]),
-        aqi_1h=aqi_from_pm(stats["v3"]),
-        aqi_6h=aqi_from_pm(stats["v4"]),
-        aqi_24h=aqi_from_pm(stats["v5"]),
+        aqi_10m=aqi_from_pm(stats["v1"], rh),
+        aqi_30m=aqi_from_pm(stats["v2"], rh),
+        aqi_1h=aqi_from_pm(stats["v3"], rh),
+        aqi_6h=aqi_from_pm(stats["v4"], rh),
+        aqi_24h=aqi_from_pm(stats["v5"], rh),
         last_updated=int(stats["lastModified"]))
 
 
-def aqi_from_pm(pm):
+def aqi_from_pm(pm, rh=None):
     """Converts from PM2.5 to a standard AQI score.
 
     PM2.5 represents particulate matter <2.5 microns. We use the US standard
     for AQI.
+
+    If a sensor isn't reporting humidity (rh), we can't apply the EPA correction;
+    in that case, we use the uncorrected pm2.5
     """
-    if pm > 350.5:
-        return _aqi(pm, 500, 401, 500, 350.5)
-    elif pm > 250.5:
-        return _aqi(pm, 400, 301, 350.4, 250.5)
-    elif pm > 150.5:
-        return _aqi(pm, 300, 201, 250.4, 150.5)
-    elif pm > 55.5:
-        return _aqi(pm, 200, 151, 150.4, 55.5)
-    elif pm > 35.5:
-        return _aqi(pm, 150, 101, 55.4, 35.5)
-    elif pm > 12.1:
-        return _aqi(pm, 100, 51, 35.4, 12.1)
+    if rh is not None:
+        corrected_pm = _apply_epa_correction(pm, rh)
     else:
-        return _aqi(pm, 50, 0, 12, 0)
+        corrected_pm = pm
+    if corrected_pm > 350.5:
+        return _aqi(corrected_pm, 500, 401, 500, 350.5)
+    elif corrected_pm > 250.5:
+        return _aqi(corrected_pm, 400, 301, 350.4, 250.5)
+    elif corrected_pm > 150.5:
+        return _aqi(corrected_pm, 300, 201, 250.4, 150.5)
+    elif corrected_pm > 55.5:
+        return _aqi(corrected_pm, 200, 151, 150.4, 55.5)
+    elif corrected_pm > 35.5:
+        return _aqi(corrected_pm, 150, 101, 55.4, 35.5)
+    elif corrected_pm > 12.1:
+        return _aqi(corrected_pm, 100, 51, 35.4, 12.1)
+    else:
+        return _aqi(corrected_pm, 50, 0, 12, 0)
+
+
+def _apply_epa_correction(pm, rh):
+    """Applies the EPA calibration to Purple's PM2.5 data.
+    Version of formula matches the Purple Air site's info.
+
+    We floor it to 0 since the combination of very low pm2.5 concentration
+    and very high humidity can lead to negative numbers.
+    """
+    return max(0, 0.534 * pm - 0.0844 * rh + 5.604)
 
 
 def _aqi(pm, ih, il, bph, bpl):
