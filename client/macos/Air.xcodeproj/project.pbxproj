@@ -14,6 +14,7 @@
 		87792022252A1FD8002F7DBE /* GameKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 87792021252A1FD8002F7DBE /* GameKit.framework */; };
 		8793BF3C25299B7D0030393E /* Application.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8793BF3B25299B7D0030393E /* Application.swift */; };
 		8793BF4025299B7E0030393E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8793BF3F25299B7E0030393E /* Assets.xcassets */; };
+		87D7294A253CE3C90081FD81 /* Detail.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87D72948253CE3820081FD81 /* Detail.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -22,11 +23,12 @@
 		8779201A252A1FBC002F7DBE /* AQI */ = {isa = PBXFileReference; lastKnownFileType = folder; name = AQI; path = ../swift/AQI; sourceTree = "<group>"; };
 		8779201F252A1FD1002F7DBE /* MapKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MapKit.framework; path = System/Library/Frameworks/MapKit.framework; sourceTree = SDKROOT; };
 		87792021252A1FD8002F7DBE /* GameKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GameKit.framework; path = System/Library/Frameworks/GameKit.framework; sourceTree = SDKROOT; };
-		8793BF3825299B7D0030393E /* Air.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Air.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8793BF3825299B7D0030393E /* Air Quality.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Air Quality.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		8793BF3B25299B7D0030393E /* Application.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Application.swift; sourceTree = "<group>"; };
 		8793BF3F25299B7E0030393E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		8793BF4725299B7E0030393E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8793BF4825299B7E0030393E /* Air.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Air.entitlements; sourceTree = "<group>"; };
+		87D72948253CE3820081FD81 /* Detail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Detail.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -65,7 +67,7 @@
 		8793BF3925299B7D0030393E /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				8793BF3825299B7D0030393E /* Air.app */,
+				8793BF3825299B7D0030393E /* Air Quality.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -74,6 +76,7 @@
 			isa = PBXGroup;
 			children = (
 				8793BF3B25299B7D0030393E /* Application.swift */,
+				87D72948253CE3820081FD81 /* Detail.swift */,
 				876E10EC252A1ECA00C9F008 /* Map.swift */,
 				87278FDA252A1346007C87D2 /* main.swift */,
 				8793BF3F25299B7E0030393E /* Assets.xcassets */,
@@ -103,7 +106,7 @@
 				8779201D252A1FCB002F7DBE /* AQI */,
 			);
 			productName = Air;
-			productReference = 8793BF3825299B7D0030393E /* Air.app */;
+			productReference = 8793BF3825299B7D0030393E /* Air Quality.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -154,6 +157,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				87D7294A253CE3C90081FD81 /* Detail.swift in Sources */,
 				8793BF3C25299B7D0030393E /* Application.swift in Sources */,
 				875FAF49252A1F1C000042D8 /* Map.swift in Sources */,
 				87278FDB252A1346007C87D2 /* main.swift in Sources */,
@@ -295,7 +299,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				PRODUCT_BUNDLE_IDENTIFIER = org.backchannel.Air;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "Air Quality";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
@@ -317,7 +321,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				PRODUCT_BUNDLE_IDENTIFIER = org.backchannel.Air;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "Air Quality";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;

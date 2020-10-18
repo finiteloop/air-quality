@@ -6,7 +6,14 @@ import GameKit
 import MapKit
 import os.log
 
+protocol MapControllerDelegate: AnyObject {
+    func mapControllerDownloadStarted(_ mapController: MapController, interactive: Bool)
+    func mapControllerDownloading(_ mapController: MapController, interactive: Bool, progess: Float)
+    func mapControllerDownloadCompleted(_ mapController: MapController, interactive: Bool, withError error: Error?)
+}
+
 class MapController: NSViewController, MKMapViewDelegate, CLLocationManagerDelegate {
+    weak var mapControllerDelagate: MapControllerDelegate?
     private var _readings = GKRTree<AQI.Reading>(maxNumberOfChildren: 2)
     private var _redrawing = false
     private var _needsRedraw = false
@@ -14,6 +21,7 @@ class MapController: NSViewController, MKMapViewDelegate, CLLocationManagerDeleg
     private var _downloadStartTime: CFAbsoluteTime = 0
     private let _maximumAnnoationsToDisplay = 750
     private var _locationLoadTime: CFAbsoluteTime = 0
+    private var _firstLoad = true
 
     private lazy var _mapView: MKMapView = {
         let mapView = MKMapView(frame: self.view.bounds)
@@ -63,7 +71,12 @@ class MapController: NSViewController, MKMapViewDelegate, CLLocationManagerDeleg
     
     override func viewDidAppear() {
         super.viewDidAppear()
-        self.refreshStaleSensorData()
+        if self._firstLoad {
+            self._firstLoad = false
+            self.downloadSensorData(interactive: true)
+        } else {
+            self.refreshStaleSensorData()
+        }
     }
 
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
@@ -91,13 +104,16 @@ class MapController: NSViewController, MKMapViewDelegate, CLLocationManagerDeleg
     }
 
     func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
-        _redrawAnnotations()
+        _redrawAnnotations(onComplete: nil)
     }
     
-    /// Centers the map on the user's location. If `interactive` is true and we cannot read the location, we show an error message to the end user.
-    func centerMapOnCurrentLocation(interactive: Bool) {
+    /// Centers the map on the user's location. We return false eif we could not determine the user's location.
+    func centerMapOnCurrentLocation() -> Bool {
         if let region = self._preferredZoomRegion() {
             self._mapView.setRegion(region, animated: true)
+            return true
+        } else {
+            return false
         }
     }
 
@@ -105,27 +121,31 @@ class MapController: NSViewController, MKMapViewDelegate, CLLocationManagerDeleg
     func refreshStaleSensorData() {
         let dataAge = CFAbsoluteTimeGetCurrent() - self._downloadStartTime
         if dataAge > 900 {
-            self.downloadSensorData()
+            self.downloadSensorData(interactive: false)
         }
     }
 
     /// Downloads new sensor data from the server.
-    func downloadSensorData(interactive: Bool = false) {
+    func downloadSensorData(interactive: Bool) {
         if self._downloading {
             return
         }
         self._downloading = true
         self._downloadStartTime = CFAbsoluteTimeGetCurrent()
+        self.mapControllerDelagate?.mapControllerDownloadStarted(self, interactive: interactive)
         AQI.downloadReadings { (percentage) in
-            // TODO
+            self.mapControllerDelagate?.mapControllerDownloading(self, interactive: interactive, progess: percentage)
         } onResponse: { (readings, error) in
             let log = OSLog(subsystem: Bundle.main.bundleIdentifier!, category: "map")
             if let error = error {
                 os_log("🔴 Failed to update readings: %{public}s", log: log, type: .info, error.localizedDescription)
+                self.mapControllerDelagate?.mapControllerDownloadCompleted(self, interactive: interactive, withError: error)
             } else if let readings = readings {
                 os_log("🟢 Updated readings from server (%.3fs)", log: log, type: .info, CFAbsoluteTimeGetCurrent() - self._downloadStartTime)
                 self._readings = readings
-                self._redrawAnnotations()
+                self._redrawAnnotations {
+                    self.mapControllerDelagate?.mapControllerDownloadCompleted(self, interactive: interactive, withError: nil)
+                }
             }
             self._downloading = false
         }
@@ -139,7 +159,7 @@ class MapController: NSViewController, MKMapViewDelegate, CLLocationManagerDeleg
         }
     }
 
-    private func _redrawAnnotations() {
+    private func _redrawAnnotations(onComplete: (() -> Void)?) {
         if _redrawing {
             _needsRedraw = true
             return
@@ -149,21 +169,27 @@ class MapController: NSViewController, MKMapViewDelegate, CLLocationManagerDeleg
             self._mapView.addAnnotations(addAnnotations)
             for (existing, updated) in updatedAnnotations {
                 if let readingView = self._mapView.view(for: existing) as? ReadingView {
-                    readingView.annotation = updated
+                    if let oldReading = readingView.annotation as? Reading {
+                        oldReading.update(updated)
+                    }
                     readingView.prepareForDisplay()
                 }
             }
             self._redrawing = false
+            if let onComplete = onComplete {
+                onComplete()
+            }
             if self._needsRedraw {
                 self._needsRedraw = false
-                self._redrawAnnotations()
+                self._redrawAnnotations(onComplete: nil)
             }
         }
     }
 }
 
-fileprivate class ReadingView: MKAnnotationView {
-    private let _size: CGFloat = 30
+private class ReadingView: MKAnnotationView {
+    private let _size: CGFloat = 28
+    private var _detailCalloutAccessoryView: SensorDetailView?
 
     private lazy var _field: NSTextField = {
         let field = NSTextField()
@@ -192,6 +218,8 @@ fileprivate class ReadingView: MKAnnotationView {
         super.init(annotation: annotation, reuseIdentifier: reuseIdentifier)
         self.addSubview(self._circle)
         self.addSubview(self._field)
+        self.canShowCallout = true
+        self.frame = NSRect(x: 0, y: 0, width: _size, height: _size)
         NSLayoutConstraint.activate([
             self._circle.widthAnchor.constraint(equalToConstant: _size),
             self._circle.heightAnchor.constraint(equalToConstant: _size),
@@ -211,14 +239,27 @@ fileprivate class ReadingView: MKAnnotationView {
     override func prepareForDisplay() {
         super.prepareForDisplay()
         if let reading = self.annotation as? AQI.Reading {
-            self._field.stringValue = reading.title!
+            self._field.stringValue = reading.aqiString
             self._circle.setColor(color: AQI.color(aqi: reading.aqi))
             self._field.textColor = nsColor(AQI.textColor(aqi: reading.aqi))
+            self._detailCalloutAccessoryView?.reading = reading
+        }
+    }
+    
+    override var detailCalloutAccessoryView: NSView? {
+        get {
+            if self._detailCalloutAccessoryView == nil {
+                self._detailCalloutAccessoryView = SensorDetailView()
+                self._detailCalloutAccessoryView?.reading = self.annotation as? AQI.Reading
+            }
+            return self._detailCalloutAccessoryView
+        }
+        set {
         }
     }
 }
 
-fileprivate class ReadingCircle: NSView {
+class ReadingCircle: NSView {
     private var _color: CGColor = CGColor(red: 0, green: 0, blue: 0, alpha: 1)
 
     func setColor(color: AQI.Color) {
@@ -236,6 +277,6 @@ fileprivate class ReadingCircle: NSView {
     }
 }
 
-fileprivate func nsColor(_ color: AQI.Color) -> NSColor {
+func nsColor(_ color: AQI.Color) -> NSColor {
     return NSColor(deviceRed: CGFloat(color.r / 255.0), green: CGFloat(color.g / 255.0), blue: CGFloat(color.b / 255.0), alpha: 1)
 }
