@@ -8,8 +8,6 @@ import os.log
 
 class MapController: UIViewController, MKMapViewDelegate, CLLocationManagerDelegate, MapSearchControllerDelegate {
     private var _readings = GKRTree<AQI.Reading>(maxNumberOfChildren: 2)
-    private var _redrawing = false
-    private var _needsRedraw = false
     private var _downloadStartTime: CFAbsoluteTime = 0
     private var _locationLoadTime: CFAbsoluteTime = 0
     private let _maximumAnnoationsToDisplay = 750
@@ -173,10 +171,6 @@ class MapController: UIViewController, MKMapViewDelegate, CLLocationManagerDeleg
     }
 
     private func _redrawAnnotations() {
-        if _redrawing {
-            _needsRedraw = true
-            return
-        }
         AQI.calculateRenderOperation(readings: self._readings, region: self._mapView.region, currentAnnotations: self._mapView.annotations, maximumAnnotationsToDisplay: self._maximumAnnoationsToDisplay) { (addAnnotations, removeAnnotations, updatedAnnotations) in
             self._mapView.removeAnnotations(removeAnnotations)
             self._mapView.addAnnotations(addAnnotations)
@@ -187,11 +181,6 @@ class MapController: UIViewController, MKMapViewDelegate, CLLocationManagerDeleg
                     }
                     readingView.prepareForDisplay()
                 }
-            }
-            self._redrawing = false
-            if self._needsRedraw {
-                self._needsRedraw = false
-                self._redrawAnnotations()
             }
         }
     }
