@@ -1,5 +1,7 @@
+# Copyright 2020
+#
 # pytest file
-# best invoked from the server/ directory as pytest tests/
+# Best invoked from the server/ directory as pytest tests/
 
 import sys
 import pytest

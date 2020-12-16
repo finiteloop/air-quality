@@ -70,7 +70,7 @@ def parse_api(data):
             aqi_1h=aqi_from_pm(item[field_indexes["pm2.5_60minute"]], humidity),
             aqi_6h=aqi_from_pm(item[field_indexes["pm2.5_6hour"]], humidity),
             aqi_24h=aqi_from_pm(item[field_indexes["pm2.5_24hour"]], humidity),
-            last_updated=item[field_indexes["last_seen"]]))
+            last_updated=item[field_indexes["last_seen"]] * 1000))
     return model_pb2.Sensors(sensors=sensors)
 
 
