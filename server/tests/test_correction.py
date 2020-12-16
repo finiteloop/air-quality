@@ -1,8 +1,10 @@
 # pytest file
 # best invoked from the server/ directory as pytest tests/
+
 import sys
 import pytest
 from pathlib import Path
+
 sys.path.append(str(Path(__file__).parents[1] / "update_data/"))
 from purpleair import _apply_epa_correction, aqi_from_pm
 

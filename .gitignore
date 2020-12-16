@@ -6,3 +6,4 @@ xcshareddata/
 .swiftpm/
 .aws-sam/
 samconfig.toml
+__pycache__

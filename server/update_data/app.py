@@ -3,7 +3,6 @@
 """A Lambda function that runs periodically to update PurpleAir sensor data."""
 
 import boto3
-import json
 import logging
 import os
 import purpleair
@@ -11,7 +10,8 @@ import time
 import urllib.request
 
 
-def update_sensor_data(s3_bucket, s3_object, compact_s3_object):
+def update_sensor_data(
+    purpleair_api_key, s3_bucket, s3_object, compact_s3_object):
     """Uploads PurpleAir sensor data to the location used by our clients.
 
     We download JSON from PurpleAir and convert to our proprietary Protocol
@@ -22,9 +22,9 @@ def update_sensor_data(s3_bucket, s3_object, compact_s3_object):
     which just contains a single reading, is used by the widget.
     """
     start_time = time.time()
-    raw = urllib.request.urlopen(purpleair.JSON_URL).read()
+    raw = urllib.request.urlopen(purpleair.api_url(purpleair_api_key)).read()
     download_time = time.time()
-    sensors = purpleair.parse_json(json.loads(raw))
+    sensors = purpleair.parse_api(raw)
     compact = purpleair.compact_sensor_data(sensors)
     parse_time = time.time()
     s3 = boto3.client("s3")
@@ -49,6 +49,7 @@ def update_sensor_data(s3_bucket, s3_object, compact_s3_object):
 
 def lambda_handler(event, context):
     update_sensor_data(
+        purpleair_api_key=os.environ["PURPLEAIR_API_KEY"],
         s3_bucket=os.environ["AWS_S3_BUCKET"],
         s3_object=os.environ["AWS_S3_OBJECT"],
         compact_s3_object=os.environ["AWS_S3_OBJECT_COMPACT"])

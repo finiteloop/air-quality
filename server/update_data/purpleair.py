@@ -4,8 +4,74 @@
 
 import json
 import model_pb2
+import urllib.parse
 
 JSON_URL = "https://www.purpleair.com/json"
+API_URL = "https://api.purpleair.com/v1/sensors"
+
+_API_FIELDS = [
+    "sensor_index",
+    "latitude",
+    "longitude",
+    "humidity",
+    "pm2.5_10minute",
+    "pm2.5_30minute",
+    "pm2.5_60minute",
+    "pm2.5_6hour",
+    "pm2.5_24hour",
+    "last_seen",
+]
+
+
+def api_url(api_key):
+    """Returns the download URL for the PurpleAir API with the given API key."""
+    return API_URL + "?" + urllib.parse.urlencode({
+        "api_key": api_key,
+        "max_age": 300,      # Filter out sensors that have stopped updating
+        "location_type": 0,  # Outside sensors only
+        "fields": ",".join(_API_FIELDS)
+    })
+
+
+def parse_api(data):
+    """Parses the response from the PurpleAIR API (https://api.purpleair.com).
+
+    We return a Sensors protobuf suitable for the Air Quality app clients.
+    """
+    response = json.loads(data)
+    field_indexes = {n: response["fields"].index(n) for n in _API_FIELDS}
+    pm_fields = [
+        "pm2.5_10minute",
+        "pm2.5_30minute",
+        "pm2.5_60minute",
+        "pm2.5_6hour",
+        "pm2.5_24hour",
+    ]
+    sensors = []
+    for item in response["data"]:
+        humidity = item[field_indexes["humidity"]]
+        latitude = item[field_indexes["latitude"]]
+        longitude = item[field_indexes["longitude"]]
+        if not latitude or not longitude:
+            continue
+        has_pm_data = True
+        for pm_field in pm_fields:
+            if not item[field_indexes[pm_field]]:
+                has_pm_data = False
+                break
+        if not has_pm_data:
+            continue
+        sensors.append(model_pb2.Sensor(
+            id=item[field_indexes["sensor_index"]],
+            latitude=latitude,
+            longitude=longitude,
+            aqi_10m=aqi_from_pm(item[field_indexes["pm2.5_10minute"]], humidity),
+            aqi_30m=aqi_from_pm(item[field_indexes["pm2.5_30minute"]], humidity),
+            aqi_1h=aqi_from_pm(item[field_indexes["pm2.5_60minute"]], humidity),
+            aqi_6h=aqi_from_pm(item[field_indexes["pm2.5_6hour"]], humidity),
+            aqi_24h=aqi_from_pm(item[field_indexes["pm2.5_24hour"]], humidity),
+            last_updated=item[field_indexes["last_seen"]]))
+    return model_pb2.Sensors(sensors=sensors)
 
 
 def parse_json(data):

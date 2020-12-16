@@ -66,6 +66,7 @@ Resources:
       Runtime: python3.8
       Environment:
         Variables:
+          PURPLEAIR_API_KEY: !Ref PurpleAirAPIKey
           AWS_S3_BUCKET: !Ref S3BucketName
           AWS_S3_OBJECT: !Ref S3Key
           AWS_S3_OBJECT_COMPACT: !Ref S3KeyCompact
@@ -112,6 +113,8 @@ Resources:
               - s3:ObjectCreated:*
 
 Parameters:
+  PurpleAirAPIKey:
+    Type: String
   S3BucketName:
     Type: String
   S3Key:
