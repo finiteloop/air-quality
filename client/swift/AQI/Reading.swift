@@ -54,7 +54,7 @@ public class Reading: NSObject, MKAnnotation, Comparable {
     }
     
     public var lastUpdated: Date {
-        return Date(timeIntervalSince1970: Double(self._sensor.lastUpdated) / 1000.0)
+        return Date(timeIntervalSince1970: Double(self._sensor.lastUpdated))
     }
 
     public var subtitle: String? {
