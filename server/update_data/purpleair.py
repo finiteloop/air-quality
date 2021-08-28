@@ -33,10 +33,13 @@ def api_url(api_key):
     })
 
 
-def parse_api(data):
+def parse_api(data, epa_correction=True):
     """Parses the response from the PurpleAIR API (https://api.purpleair.com).
 
     We return a Sensors protobuf suitable for the Air Quality app clients.
+
+    If epa_correction is True, we correct the readings to more closely match
+    EPA AQI standards.
     """
     response = json.loads(data)
     field_indexes = {n: response["fields"].index(n) for n in _API_FIELDS}
@@ -65,25 +68,12 @@ def parse_api(data):
             id=item[field_indexes["sensor_index"]],
             latitude=latitude,
             longitude=longitude,
-            aqi_10m=aqi_from_pm(item[field_indexes["pm2.5_10minute"]], humidity),
-            aqi_30m=aqi_from_pm(item[field_indexes["pm2.5_30minute"]], humidity),
-            aqi_1h=aqi_from_pm(item[field_indexes["pm2.5_60minute"]], humidity),
-            aqi_6h=aqi_from_pm(item[field_indexes["pm2.5_6hour"]], humidity),
-            aqi_24h=aqi_from_pm(item[field_indexes["pm2.5_24hour"]], humidity),
+            aqi_10m=aqi_from_pm(item[field_indexes["pm2.5_10minute"]], humidity, epa_correction),
+            aqi_30m=aqi_from_pm(item[field_indexes["pm2.5_30minute"]], humidity, epa_correction),
+            aqi_1h=aqi_from_pm(item[field_indexes["pm2.5_60minute"]], humidity, epa_correction),
+            aqi_6h=aqi_from_pm(item[field_indexes["pm2.5_6hour"]], humidity, epa_correction),
+            aqi_24h=aqi_from_pm(item[field_indexes["pm2.5_24hour"]], humidity, epa_correction),
             last_updated=item[field_indexes["last_seen"]] * 1000))
-    return model_pb2.Sensors(sensors=sensors)
-
-
-def parse_json(data):
-    """Parses the PupleAir JSON file, returning a Sensors protobuf."""
-    channel_a = []
-    channel_b = {}
-    for result in data["results"]:
-        if "ParentID" in result:
-            channel_b[result["ParentID"]] = result
-        else:
-            channel_a.append(result)
-    sensors = list(_parse_results(channel_a, channel_b))
     return model_pb2.Sensors(sensors=sensors)
 
 
@@ -103,59 +93,19 @@ def compact_sensor_data(sensors):
     return model_pb2.Sensors(sensors=compact)
 
 
-def _valid_result(result):
-    if result.get("DEVICE_LOCATIONTYPE", "outside") != "outside":
-        # Skip sensors that are inside
-        return False
-    elif int(result["AGE"]) > 300:
-        # Ignore device readings more than 5 minutes old
-        return False
-    return "Lat" in result and "Lon" in result and "Stats" in result
-
-
-def _parse_results(channel_a, channel_b):
-    for result in channel_a:
-        assert "ParentID" not in result
-        if not _valid_result(result):
-            continue
-        elif result.get("Flag"):
-            # PurpleAir has flagged this sensor for unusually high readings.
-            # Fall back to channel B if its result has not been flagged.
-            result_b = channel_b.get(result["ID"])
-            if result_b and _valid_result(result_b) and not result_b.get("Flag"):
-                yield _parse_result(result_b)
-        else:
-            yield _parse_result(result)
-
-
-def _parse_result(result):
-    id = int(result["ID"])
-    latitude = float(result["Lat"])
-    longitude = float(result["Lon"])
-    stats = json.loads(result["Stats"])
-    rh = float(result["humidity"]) if 'humidity' in result else None
-    return model_pb2.Sensor(
-        id=id,
-        latitude=latitude,
-        longitude=longitude,
-        aqi_10m=aqi_from_pm(stats["v1"], rh),
-        aqi_30m=aqi_from_pm(stats["v2"], rh),
-        aqi_1h=aqi_from_pm(stats["v3"], rh),
-        aqi_6h=aqi_from_pm(stats["v4"], rh),
-        aqi_24h=aqi_from_pm(stats["v5"], rh),
-        last_updated=int(stats["lastModified"]))
-
-
-def aqi_from_pm(pm, rh=None):
+def aqi_from_pm(pm, rh=None, epa_correction=True):
     """Converts from PM2.5 to a standard AQI score.
 
     PM2.5 represents particulate matter <2.5 microns. We use the US standard
     for AQI.
 
     If a sensor isn't reporting humidity (rh), we can't apply the EPA correction;
-    in that case, we use the uncorrected pm2.5
+    in that case, we use the uncorrected pm2.5.
+
+    See https://cfpub.epa.gov/si/si_public_record_report.cfm?Lab=CEMM&dirEntryId=348236
+    for details on the EPA correction formula.
     """
-    if rh is not None:
+    if rh is not None and epa_correction:
         corrected_pm = _apply_epa_correction(pm, rh)
     else:
         corrected_pm = pm
@@ -177,7 +127,6 @@ def aqi_from_pm(pm, rh=None):
 
 def _apply_epa_correction(pm, rh):
     """Applies the EPA calibration to Purple's PM2.5 data.
-    Version of formula matches the Purple Air site's info.
 
     We floor it to 0 since the combination of very low pm2.5 concentration
     and very high humidity can lead to negative numbers.

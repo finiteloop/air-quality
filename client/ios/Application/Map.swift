@@ -52,11 +52,30 @@ class MapController: UIViewController, MKMapViewDelegate, CLLocationManagerDeleg
         }
         return locationManager
     }()
+    
+    private lazy var _measurementToggle: UISegmentedControl = {
+        let segmentedControl = UISegmentedControl(items: [
+            NSLocalizedString("EPA AQI", comment: "Terse description of EPA Air Quality Index"),
+            NSLocalizedString("PurpleAir AQI", comment: "Terse description of unmodified PurpleAir AQI"),
+        ])
+        segmentedControl.translatesAutoresizingMaskIntoConstraints = false
+        segmentedControl.selectedSegmentIndex = 0
+        segmentedControl.addTarget(self, action: #selector(self._onMeasurementToggleChanged), for: .valueChanged)
+        return segmentedControl
+    }()
+
+    private lazy var _measurementBackground: UIView = {
+        let visualEffect = UIVisualEffectView(effect: UIBlurEffect(style: .regular))
+        visualEffect.layer.cornerRadius = self._measurementToggle.layer.cornerRadius
+        visualEffect.layer.masksToBounds = true
+        visualEffect.translatesAutoresizingMaskIntoConstraints = false
+        return visualEffect
+    }()
 
     private lazy var _errorBar: UITextView = {
         let errorBar = UITextView(frame: self.view.bounds)
         errorBar.backgroundColor = .systemRed
-        errorBar.text = NSLocalizedString("Unable to download new air quality data", comment: "Error message when new map data cannot be downloaded")
+        errorBar.text = NSLocalizedString("Unable to download air quality data", comment: "Error message when new map data cannot be downloaded")
         errorBar.textAlignment = .center
         errorBar.isScrollEnabled = false
         errorBar.isUserInteractionEnabled = false
@@ -68,6 +87,10 @@ class MapController: UIViewController, MKMapViewDelegate, CLLocationManagerDeleg
         errorBar.isHidden = true
         return errorBar
     }()
+    
+    private var _readingType: AQI.ReadingType {
+        return self._measurementToggle.selectedSegmentIndex == 0 ? .epaCorrected : .rawPurpleAir;
+    }
 
     init() {
         super.init(nibName: nil, bundle: nil)
@@ -92,6 +115,8 @@ class MapController: UIViewController, MKMapViewDelegate, CLLocationManagerDeleg
         self.view.addSubview(self._mapView)
         self.view.addSubview(self._errorBar)
         self.view.addSubview(self._progressView)
+        self.view.addSubview(self._measurementBackground)
+        self.view.addSubview(self._measurementToggle)
         if let region = self._preferredZoomRegion() {
             self._mapView.region = region
         } else {
@@ -112,6 +137,12 @@ class MapController: UIViewController, MKMapViewDelegate, CLLocationManagerDeleg
             self._mapView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
             self._mapView.leftAnchor.constraint(equalTo: self.view.leftAnchor),
             self._mapView.rightAnchor.constraint(equalTo: self.view.rightAnchor),
+            self._measurementToggle.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor),
+            self._measurementToggle.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
+            self._measurementBackground.leftAnchor.constraint(equalTo: self._measurementToggle.leftAnchor),
+            self._measurementBackground.rightAnchor.constraint(equalTo: self._measurementToggle.rightAnchor),
+            self._measurementBackground.topAnchor.constraint(equalTo: self._measurementToggle.topAnchor),
+            self._measurementBackground.bottomAnchor.constraint(equalTo: self._measurementToggle.bottomAnchor),
         ])
     }
 
@@ -122,7 +153,7 @@ class MapController: UIViewController, MKMapViewDelegate, CLLocationManagerDeleg
             self._downloadSensorData()
         }
     }
-    
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         self.refreshStaleSensorData()
@@ -208,6 +239,12 @@ class MapController: UIViewController, MKMapViewDelegate, CLLocationManagerDeleg
             self.present(alert, animated: true, completion: nil)
         }
     }
+    
+    @objc private func _onMeasurementToggleChanged() {
+        self._readings = GKRTree<AQI.Reading>(maxNumberOfChildren: 2)
+        self._redrawAnnotations()
+        self._downloadSensorData()
+    }
 
     @objc private func _downloadSensorData() {
         if !self._progressView.isHidden {
@@ -216,9 +253,9 @@ class MapController: UIViewController, MKMapViewDelegate, CLLocationManagerDeleg
         self._progressView.progress = 0
         self._progressView.isHidden = false
         self._downloadStartTime = CFAbsoluteTimeGetCurrent()
-        AQI.downloadReadings { (percentage) in
+        AQI.downloadReadings(type: self._readingType, onProgess: { (percentage) in
             self._progressView.progress = percentage
-        } onResponse: { (readings, error) in
+        }, onResponse: { (readings, error) in
             let log = OSLog(subsystem: Bundle.main.bundleIdentifier!, category: "map")
             if let error = error {
                 os_log("🔴 Failed to update readings: %{public}s", log: log, type: .info, error.localizedDescription)
@@ -235,7 +272,7 @@ class MapController: UIViewController, MKMapViewDelegate, CLLocationManagerDeleg
                 self._progressView.isHidden = true
                 self._progressView.alpha = 1
             }
-        }
+        })
     }
 
     private func _showDownloadError() {

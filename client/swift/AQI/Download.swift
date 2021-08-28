@@ -3,8 +3,18 @@
 import Foundation
 import GameKit
 
-private let dataURL = URL(string: "https://dfddnmlutocpt.cloudfront.net/sensors.pb")!
+private let aqiDataURL = URL(string: "https://dfddnmlutocpt.cloudfront.net/sensors.pb")!
+private let particulateMatterDataURL = URL(string: "https://dfddnmlutocpt.cloudfront.net/sensors.raw.pb")!
 private let compactDataURL = URL(string: "https://dfddnmlutocpt.cloudfront.net/sensors.compact.pb")!
+
+/// The type of air quality measurement
+public enum ReadingType {
+    /// Calculated EPA AQI
+    case epaCorrected
+    
+    /// Raw PurpleAir PM2.5 AQI
+    case rawPurpleAir
+}
 
 /// Downloads the most recent AQI readings from the server.
 ///
@@ -14,10 +24,10 @@ private let compactDataURL = URL(string: "https://dfddnmlutocpt.cloudfront.net/s
 ///   - onResponse: The callback to which we report the parsed download response
 @available(iOS 13.0, *)
 @available(macOS 10.12, *)
-public func downloadReadings(onProgess: @escaping (Float) -> Void, onResponse: @escaping (GKRTree<Reading>?, Error?) -> Void) {
+public func downloadReadings(type: ReadingType, onProgess: @escaping (Float) -> Void, onResponse: @escaping (GKRTree<Reading>?, Error?) -> Void) {
     let client = DownloadClient(onProgess: onProgess, onResponse: onResponse)
     let session = URLSession(configuration: URLSessionConfiguration.default, delegate: client, delegateQueue: OperationQueue.main)
-    session.downloadTask(with: dataURL).resume()
+    session.downloadTask(with: type == .epaCorrected ? aqiDataURL : particulateMatterDataURL).resume()
 }
 
 /// Downloads the compact AQI readings from the server, which only includes one AQI reading in addition to the latitude and longitude.

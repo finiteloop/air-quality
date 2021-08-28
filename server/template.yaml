@@ -63,12 +63,13 @@ Resources:
     Properties:
       CodeUri: update_data/
       Handler: app.lambda_handler
-      Runtime: python3.8
+      Runtime: python3.9
       Environment:
         Variables:
           PURPLEAIR_API_KEY: !Ref PurpleAirAPIKey
           AWS_S3_BUCKET: !Ref S3BucketName
           AWS_S3_OBJECT: !Ref S3Key
+          AWS_S3_OBJECT_RAW: !Ref S3KeyRaw
           AWS_S3_OBJECT_COMPACT: !Ref S3KeyCompact
       Policies:
       - Statement:
@@ -83,7 +84,7 @@ Resources:
           Type: Schedule
           Properties:
             Name: UpdateDataEvent
-            Schedule: rate(10 minutes)
+            Schedule: rate(5 minutes)
             Enabled: True
 
   # Invalidates CloudFront cache whenever data is updated in S3
@@ -92,7 +93,7 @@ Resources:
     Properties:
       CodeUri: update_cloudfront/
       Handler: app.lambda_handler
-      Runtime: python3.8
+      Runtime: python3.9
       Environment:
         Variables:
           AWS_CLOUDFRONT_DISTRIBUTION_ID: !Ref CloudFrontDistribution
@@ -120,6 +121,9 @@ Parameters:
   S3Key:
     Type: String
     Default: sensors.pb
+  S3KeyRaw:
+    Type: String
+    Default: sensors.raw.pb
   S3KeyCompact:
     Type: String
     Default: sensors.compact.pb
