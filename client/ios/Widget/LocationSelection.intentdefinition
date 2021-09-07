@@ -9,11 +9,11 @@
 	<key>INIntentDefinitionNamespace</key>
 	<string>88xZPY</string>
 	<key>INIntentDefinitionSystemVersion</key>
-	<string>19H2</string>
+	<string>20G95</string>
 	<key>INIntentDefinitionToolsBuildVersion</key>
-	<string>12A7300</string>
+	<string>12E507</string>
 	<key>INIntentDefinitionToolsVersion</key>
-	<string>12.0.1</string>
+	<string>12.5.1</string>
 	<key>INIntents</key>
 	<array>
 		<dict>
@@ -30,10 +30,10 @@
 			<key>INIntentIneligibleForSuggestions</key>
 			<true/>
 			<key>INIntentLastParameterTag</key>
-			<integer>4</integer>
+			<integer>6</integer>
 			<key>INIntentManagedParameterCombinations</key>
 			<dict>
-				<key>location</key>
+				<key>location,display_purpleair</key>
 				<dict>
 					<key>INIntentParameterCombinationSupportsBackgroundExecution</key>
 					<true/>
@@ -80,6 +80,48 @@
 					<integer>2</integer>
 					<key>INIntentParameterType</key>
 					<string>Placemark</string>
+				</dict>
+				<dict>
+					<key>INIntentParameterConfigurable</key>
+					<true/>
+					<key>INIntentParameterDisplayName</key>
+					<string>Show Raw PurpleAir values</string>
+					<key>INIntentParameterDisplayNameID</key>
+					<string>gyzQoM</string>
+					<key>INIntentParameterDisplayPriority</key>
+					<integer>2</integer>
+					<key>INIntentParameterMetadata</key>
+					<dict>
+						<key>INIntentParameterMetadataFalseDisplayName</key>
+						<string>false</string>
+						<key>INIntentParameterMetadataFalseDisplayNameID</key>
+						<string>C9JREb</string>
+						<key>INIntentParameterMetadataTrueDisplayName</key>
+						<string>true</string>
+						<key>INIntentParameterMetadataTrueDisplayNameID</key>
+						<string>Pp5b6V</string>
+					</dict>
+					<key>INIntentParameterName</key>
+					<string>display_purpleair</string>
+					<key>INIntentParameterPromptDialogs</key>
+					<array>
+						<dict>
+							<key>INIntentParameterPromptDialogCustom</key>
+							<true/>
+							<key>INIntentParameterPromptDialogType</key>
+							<string>Configuration</string>
+						</dict>
+						<dict>
+							<key>INIntentParameterPromptDialogCustom</key>
+							<true/>
+							<key>INIntentParameterPromptDialogType</key>
+							<string>Primary</string>
+						</dict>
+					</array>
+					<key>INIntentParameterTag</key>
+					<integer>6</integer>
+					<key>INIntentParameterType</key>
+					<string>Boolean</string>
 				</dict>
 			</array>
 			<key>INIntentResponse</key>

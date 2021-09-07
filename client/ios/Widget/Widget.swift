@@ -26,6 +26,7 @@ struct MapProvider : IntentTimelineProvider {
 
     func getSnapshot(for intent: LocationSelectionIntent, in context: Context, completion: @escaping (MapEntry) -> Void) {
         var location = self._location(for: intent)
+        let readingType = self._readingType(for: intent)
         if location == nil {
             let locationManager = CLLocationManager()
             locationManager.desiredAccuracy = kCLLocationAccuracyKilometer
@@ -48,7 +49,7 @@ struct MapProvider : IntentTimelineProvider {
                 }
             }
         }
-        self._mapImage(location: location, size: context.displaySize) { (mapImage) in
+        self._mapImage(location: location, size: context.displaySize, readingType: readingType) { (mapImage) in
             completion(MapEntry(date: Date(), mapImage: mapImage ?? UIImage(named: "MapPlaceholder")!))
         }
     }
@@ -65,7 +66,12 @@ struct MapProvider : IntentTimelineProvider {
         return intent.location?.location
     }
     
-    private func _mapImage(location: CLLocation?, size: CGSize, callback: @escaping (UIImage?) -> Void) {
+    private func _readingType(for intent: LocationSelectionIntent) -> AQI.ReadingType {
+        let displayPurpleAir = intent.display_purpleair?.boolValue ?? false
+        return displayPurpleAir ? .rawPurpleAir : .epaCorrected
+    }
+    
+    private func _mapImage(location: CLLocation?, size: CGSize, readingType: AQI.ReadingType, callback: @escaping (UIImage?) -> Void) {
         let coordinate: CLLocationCoordinate2D
         if let location = location {
             coordinate = location.coordinate
@@ -81,7 +87,7 @@ struct MapProvider : IntentTimelineProvider {
                 callback(nil)
                 return
             }
-            AQI.downloadCompactReadings { (readings, error) in
+            AQI.downloadCompactReadings(type: readingType) { (readings, error) in
                 if let readings = readings {
                     var region = options.region
                     if size.width > size.height {
