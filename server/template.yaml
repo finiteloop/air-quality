@@ -87,32 +87,6 @@ Resources:
             Schedule: rate(5 minutes)
             Enabled: True
 
-  # Invalidates CloudFront cache whenever data is updated in S3
-  UpdateCloudFrontFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: update_cloudfront/
-      Handler: app.lambda_handler
-      Runtime: python3.9
-      Environment:
-        Variables:
-          AWS_CLOUDFRONT_DISTRIBUTION_ID: !Ref CloudFrontDistribution
-      Policies:
-      - Statement:
-        - Sid: UpdateCloudFrontPolicy
-          Effect: Allow
-          Action:
-          - cloudfront:CreateInvalidation
-          Resource: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}"
-      Events:
-        UpdateCloudFrontEvent:
-          Type: S3
-          Properties:
-            Bucket:
-              Ref: S3Bucket
-            Events:
-              - s3:ObjectCreated:*
-
 Parameters:
   PurpleAirAPIKey:
     Type: String

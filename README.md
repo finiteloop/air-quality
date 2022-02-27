@@ -23,14 +23,12 @@ You can build the iOS and MacOS clients in XCode.
   * [iOS](client/ios/)
   * [MacOS](client/macos/)
 
-Our "server" is a two [AWS Lambda](https://aws.amazon.com/lambda/) functions:
-one that downloads the PurpleAir JSON file on a schedule, converting its
-verbose format to a terse
-[Protocol Buffer](https://developers.google.com/protocol-buffers) format used
-by our clients; and another that invalidates the CloudFront CDN that serves
-that file to our clients.
+Our "server" is a an [AWS Lambda](https://aws.amazon.com/lambda/) function that
+downloads the PurpleAir JSON file on a schedule, converting its verbose format to
+a terse [Protocol Buffer](https://developers.google.com/protocol-buffers) format
+used by our clients.
 
-See [`server/`](server/) for the two functions and the
+See [`server/`](server/) for the function and the
 [Serverless Application Model](https://aws.amazon.com/serverless/sam/)
 configuration file with which I deploy the service.
 

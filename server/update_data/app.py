@@ -46,7 +46,8 @@ def update(s3, bucket, data, object_name):
         Key=object_name,
         Body=data.SerializeToString(),
         ACL="public-read",
-        ContentType="application/protobuf")
+        ContentType="application/protobuf",
+        CacheControl="max-age=60")
 
 
 def lambda_handler(event, context):
