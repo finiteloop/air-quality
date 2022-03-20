@@ -6,6 +6,7 @@ import GameKit
 private let aqiDataURL = URL(string: "https://dfddnmlutocpt.cloudfront.net/sensors.pb")!
 private let particulateMatterDataURL = URL(string: "https://dfddnmlutocpt.cloudfront.net/sensors.raw.pb")!
 private let compactDataURL = URL(string: "https://dfddnmlutocpt.cloudfront.net/sensors.compact.pb")!
+private let compactParticulateMatterDataURL = URL(string: "https://dfddnmlutocpt.cloudfront.net/sensors.raw.compact.pb")!
 
 /// The type of air quality measurement
 public enum ReadingType {
@@ -37,11 +38,11 @@ public func downloadReadings(type: ReadingType, onProgess: @escaping (Float) -> 
 ///   - onResponse: The callback to which we report the parsed download response
 @available(iOS 13.0, *)
 @available(macOS 10.12, *)
-public func downloadCompactReadings(onResponse: @escaping (GKRTree<Reading>?, Error?) -> Void) {
+public func downloadCompactReadings(type: ReadingType, onResponse: @escaping (GKRTree<Reading>?, Error?) -> Void) {
     let client = DownloadClient(onProgess: { (percentage) in
     }, onResponse: onResponse)
     let session = URLSession(configuration: URLSessionConfiguration.default, delegate: client, delegateQueue: OperationQueue.main)
-    session.downloadTask(with: compactDataURL).resume()
+    session.downloadTask(with: type == .epaCorrected ? compactDataURL : compactParticulateMatterDataURL).resume()
 }
 
 @available(iOS 13.0, *)

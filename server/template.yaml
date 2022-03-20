@@ -71,6 +71,7 @@ Resources:
           AWS_S3_OBJECT: !Ref S3Key
           AWS_S3_OBJECT_RAW: !Ref S3KeyRaw
           AWS_S3_OBJECT_COMPACT: !Ref S3KeyCompact
+          AWS_S3_OBJECT_RAW_COMPACT: !Ref S3KeyRawCompact
       Policies:
       - Statement:
         - Sid: UpdateDataPolicy
@@ -101,3 +102,6 @@ Parameters:
   S3KeyCompact:
     Type: String
     Default: sensors.compact.pb
+  S3KeyRawCompact:
+    Type: String
+    Default: sensors.raw.compact.pb

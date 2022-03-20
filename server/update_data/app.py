@@ -17,10 +17,11 @@ def update_sensor_data(
     We download JSON from PurpleAir and convert to our proprietary Protocol
     Buffer format, which is used by all clients.
 
-    We upload three versions of the protocol buffer data:
+    We upload four versions of the protocol buffer data:
       (1) The corrected EPA AQI readings
       (2) Raw PurpleAir PM2.5 AQI readings
       (3) A compact data, with just a single AQI reading, used by the widget
+      (4) A raw compact data, to represent raw single AQI readings in the widget
     """
     start_time = time.time()
     raw = urllib.request.urlopen(purpleair.api_url(purpleair_api_key)).read()
@@ -28,11 +29,12 @@ def update_sensor_data(
     data = purpleair.parse_api(raw, epa_correction=True)
     raw_data = purpleair.parse_api(raw, epa_correction=False)
     compact_data = purpleair.compact_sensor_data(data)
+    raw_compact_data = purpleair.compact_sensor_data(raw_data)
     parse_time = time.time()
     s3 = boto3.client("s3")
     update(s3, s3_bucket, data=data, object_name=s3_object)
     update(s3, s3_bucket, data=compact_data, object_name=compact_s3_object)
-    update(s3, s3_bucket, data=raw_data, object_name=raw_s3_object)
+    update(s3, s3_bucket, data=raw_data, object_name=raw_compact_s3_object)
     s3_time = time.time()
     total_time = time.time() - start_time
     logging.info("Processed PurpleAir in %.1fs (download: %.1fs, parse: %.1fs, "
@@ -56,4 +58,5 @@ def lambda_handler(event, context):
         s3_bucket=os.environ["AWS_S3_BUCKET"],
         s3_object=os.environ["AWS_S3_OBJECT"],
         raw_s3_object=os.environ["AWS_S3_OBJECT_RAW"],
-        compact_s3_object=os.environ["AWS_S3_OBJECT_COMPACT"])
+        compact_s3_object=os.environ["AWS_S3_OBJECT_COMPACT"],
+        raw_compact_s3_object=os.environ["AWS_S3_OBJECT_RAW_COMPACT"])
